@@ -56,7 +56,12 @@ export function createCardInteraction({cards,stage,getNodes,getPositions,getCard
   });
   document.getElementById('card-reader-close').addEventListener('click',()=>dialog.close());
   document.getElementById('card-reader-return').addEventListener('click',()=>{if(selected)restore(selected);dialog.close();});
-  dialog.addEventListener('close',()=>{const previous=selected;selected=null;pauseHeartbeat();if(previous?.isConnected&&!previous.hidden&&!previous.closest('[hidden]'))previous.focus({preventScroll:true});});
+  dialog.addEventListener('close',()=>{
+    // A queued close event can arrive after the reader was opened again.
+    if (dialog.open) return;
+    const previous=selected;selected=null;pauseHeartbeat();
+    if(previous?.isConnected&&!previous.hidden&&!previous.closest('[hidden]'))previous.focus({preventScroll:true});
+  });
   dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
   function reset(){finish();if(dialog.open)dialog.close();getNodes().forEach(restore);top=64;updateReset();}
   resetButton.addEventListener('click',()=>{reset();onStatus('卡片已回到爱心里，再拖出一份心意看看吧 ♡');});

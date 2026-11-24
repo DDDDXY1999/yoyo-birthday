@@ -1,5 +1,5 @@
 import { getRecipient } from './birthday-profile.js?v=3';
-import { createCardInteraction } from './heart-cards.js?v=2';
+import { createCardInteraction } from './heart-cards.js?v=3';
 
 const CARD_COUNT = 64;
 const DURATION_MS = 5000;
