@@ -15,9 +15,11 @@ __pycache__/
 *.m4a
 *.mp4
 !/web/meteor-shower.mp4
+!/web/meteor-mobile-v1.mp4
 *.webm
 web/audio/*
 !web/audio/README.md
 !web/audio/birthday-piano.mp3
+!web/audio/birthday-piano-v2.m4a
 .DS_Store
 Thumbs.db

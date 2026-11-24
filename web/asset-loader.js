@@ -1,10 +1,14 @@
-const audio = { path: 'audio/birthday-piano.mp3', size: 1060956, type: 'audio/mpeg' };
-const video = { path: 'meteor-shower.mp4', size: 6869274, type: 'video/mp4' };
+const audio = { path: 'audio/birthday-piano-v2.m4a', size: 464906, type: 'audio/mp4' };
+// Pick one film for this visit. Rotating a phone must not start a second download.
+const video = matchMedia('(max-width: 950px), (pointer: coarse)').matches
+  ? { path: 'meteor-mobile-v1.mp4', size: 1422215, type: 'video/mp4' }
+  : { path: 'meteor-shower.mp4', size: 6869274, type: 'video/mp4' };
 const totalBytes = audio.size + video.size;
 const received = new Map();
 const jobs = new Map();
 const finished = new Set();
 const failedStyles = new Set();
+const failedMedia = new Set();
 const listeners = new Set();
 const localUrl = path => new URL(path, import.meta.url).href;
 let total = 0;
@@ -43,7 +47,12 @@ async function download(path, media) {
   }
   watchConnection();
   try {
-    const response = await fetch(localUrl(path), { signal: controller.signal });
+    const response = await fetch(localUrl(path), {
+      signal: controller.signal,
+      // Media URLs keep the same contents across releases. A failed integrity or
+      // transport check should fetch a fresh copy on the visitor's next attempt.
+      cache: media ? (failedMedia.has(path) ? 'reload' : 'force-cache') : 'default'
+    });
     if (!response.ok) throw new Error('HTTP ' + response.status);
     if (response.status === 206 && (!media ||
         response.headers.get('content-range') !== 'bytes 0-' + (media.size - 1) + '/' + media.size)) {
@@ -74,10 +83,12 @@ async function download(path, media) {
       accept(await response.blob());
     }
     if (!size || (media && size !== media.size)) throw new Error('文件未完整下载');
+    failedMedia.delete(path);
     return new Blob(chunks, { type: media?.type || response.headers.get('content-type') || '' });
   } catch (error) {
     const stalled = controller.signal.aborted;
     controller.abort();
+    if (media) failedMedia.add(path);
     received.delete(path);
     publish();
     throw new Error(path + '：' + (stalled ? '下载暂时中断，请重试。' : error.message));
@@ -173,11 +184,16 @@ export function preloadBirthdayAssets(onProgress) {
     return new Promise(() => {}); // The replacement document starts a fresh attempt.
   }
   if (onProgress) listeners.add(onProgress);
-  active ??= prepare().catch(error => {
-    active = undefined;
-    throw error;
-  });
+  active ??= prepare();
   publish();
   // Keep the blobs for the document lifetime, including back/forward cache.
-  return active.finally(() => listeners.delete(onProgress));
+  return active.catch(error => {
+    active = undefined;
+    throw error;
+  }).finally(() => listeners.delete(onProgress));
 }
+
+// The head starts this module independently of the invitation's UI module graph.
+// Keep even a rejected first attempt so the UI can display its retry control.
+active = prepare();
+active.catch(() => {});

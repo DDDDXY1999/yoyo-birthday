@@ -18,6 +18,9 @@ async function waitForDownload(promise, label) {
 (async () => {
   const firstVideo = Promise.withResolvers(), failVideo = Promise.withResolvers();
   const partialVideo = Promise.withResolvers(), finishVideo = Promise.withResolvers();
+  const mobileFilm = '/meteor-mobile-v1.mp4';
+  const desktopFilm = '/meteor-shower.mp4';
+  const piano = '/audio/birthday-piano-v2.m4a';
   let videoAttempts = 0;
   const mediaRequests = [];
   // Keep the browser and its media on one origin. The second video response
@@ -25,8 +28,8 @@ async function waitForDownload(promise, label) {
   const server = http.createServer(async (req, res) => {
     try {
       const url = new URL('.' + req.url, base);
-      const video = url.pathname.endsWith('/meteor-shower.mp4');
-      if (/\.(mp3|mp4|ogg|wav)$/i.test(url.pathname)) mediaRequests.push(url.pathname);
+      const video = url.pathname === mobileFilm;
+      if (/\.(mp3|m4a|mp4|ogg|wav)$/i.test(url.pathname)) mediaRequests.push(url.pathname);
       if (video && ++videoAttempts === 1) {
         firstVideo.resolve();
         await failVideo.promise;
@@ -95,7 +98,7 @@ async function waitForDownload(promise, label) {
     assert.equal(await progress.evaluate(p => p.value),100);
     assert.equal(videoAttempts,2);
     const downloadsAtReady = mediaRequests.slice();
-    assert.ok(downloadsAtReady.some(url => /\.mp3$/.test(url)));
+    assert.deepEqual(downloadsAtReady.toSorted(), [mobileFilm, mobileFilm, piano].toSorted());
     await page.context().setOffline(true);
     await invitation.tap();
     await page.waitForFunction(() => window.__preloadAudio.some(a => a.currentSrc.startsWith('blob:') && !a.paused));
@@ -109,7 +112,11 @@ async function waitForDownload(promise, label) {
     await page.waitForFunction(() => !document.getElementById('studio-edit').disabled);
     assert.equal(await page.locator('#workshop-canvas canvas').isVisible(),true);
     assert.deepEqual(mediaRequests,downloadsAtReady);
-    console.log(JSON.stringify({passed:true,mobile:true,partialDownloadBlocksEntry:true,retry:true,videoAttempts,mediaPlayedFromBlobs:true,offlineWorkshop:true}));
+    const desktop = await browser.newPage({viewport:{width:1440,height:900}});
+    await desktop.goto('http://127.0.0.1:' + server.address().port + '/');
+    await desktop.locator('#identity-submit').waitFor({state:'visible'});
+    assert.deepEqual(mediaRequests.slice(downloadsAtReady.length).toSorted(), [desktopFilm, piano].toSorted());
+    console.log(JSON.stringify({passed:true,mobile:true,partialDownloadBlocksEntry:true,retry:true,videoAttempts,mediaPlayedFromBlobs:true,offlineWorkshop:true,oneFilmPerDevice:true}));
   } finally {
     failVideo.resolve(); finishVideo.resolve();
     if (browser) await browser.close();

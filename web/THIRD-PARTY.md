@@ -26,6 +26,7 @@ licenses of the referenced projects or imply their endorsement.
 
 ## Music
 
-The Happy Birthday piano arrangement in `audio/birthday-piano.mp3` was rendered
+The Happy Birthday piano arrangement in `audio/birthday-piano.mp3` and its smaller
+web edition, `audio/birthday-piano-v2.m4a`, was rendered
 for this birthday website using the Kawai grand piano samples from the
 Versilian Community Sample Library (CC0). [Sample source and license](https://versilian-studios.com/vcsl/)

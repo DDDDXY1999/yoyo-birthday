@@ -1,6 +1,6 @@
 import { getRecipient } from './birthday-profile.js?v=3';
 import { createCardInteraction } from './heart-cards.js?v=3';
-import { preloadBirthdayAssets } from './asset-loader.js?v=1';
+import { preloadBirthdayAssets } from './asset-loader.js?v=2';
 
 const CARD_COUNT = 64;
 const DURATION_MS = 5000;
