@@ -40,10 +40,12 @@ const output=path.resolve(__dirname,'../artifacts');
   assert.equal(await card.evaluate(n=>n.style.left),moved);
   await page.locator('#enter-cake').click();await finishMeteor(page);await page.waitForFunction(()=>!document.getElementById('studio-edit').disabled);await page.locator('#back-heart').click();assert.equal(await card.evaluate(n=>n.style.left),moved);
   await page.locator('#replay').click();await page.locator('#enter-cake').waitFor({state:'visible'});assert.equal(await page.locator('.wish-card:visible').count(),64);assert.equal(await page.locator('#reset-cards').isDisabled(),true);
+  await page.locator('#exit').click();
+  await page.close();
   const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});await enterHeart(phone);const touchCard=phone.locator('.wish-card').last(),left=await touchCard.evaluate(n=>parseFloat(n.style.left));const r=await touchCard.boundingBox();
   const session=await phone.context().newCDPSession(phone),x=r.x+r.width*.4,y=r.y+r.height*.6;await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
   for(let i=1;i<=6;i++){await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-80*i/6,y:y+125*i/6}]});await phone.waitForTimeout(20)}await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.ok(Math.abs(await touchCard.evaluate(n=>parseFloat(n.style.left))-left)>30);
-  await phone.waitForTimeout(500);await touchCard.locator('.card-message').tap();await phone.locator('#card-reader').waitFor({state:'visible'});await phone.screenshot({path:path.join(output,'heart-card-reader-mobile.png')});assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await phone.locator('#card-reader-return').tap();await phone.locator('#exit').tap();await page.locator('#exit').click();assert.deepEqual(errors,[]);
+  await phone.waitForTimeout(500);await touchCard.locator('.card-message').tap();await phone.locator('#card-reader').waitFor({state:'visible'});await phone.screenshot({path:path.join(output,'heart-card-reader-mobile.png')});assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await phone.locator('#card-reader-return').tap();await phone.locator('#exit').tap();assert.deepEqual(errors,[]);
   console.log(JSON.stringify({passed:true,flameAnimation:true,dragAndRead:true,restoreAll:true,keyboard:true,touchDrag:true,returnFromCake:true,errors:0}));
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
