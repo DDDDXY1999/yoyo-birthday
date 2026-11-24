@@ -1,0 +1,52 @@
+.meteor-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  isolation: isolate;
+  background: radial-gradient(ellipse at center, #102944 0, #050e20 65%, #030815 100%);
+  color: #f6f7fd;
+}
+.meteor-scene video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.meteor-actions {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgb(159 190 211 / 18%);
+  border-radius: 24px;
+  background: linear-gradient(110deg, rgb(12 28 48 / 68%), rgb(5 15 31 / 48%));
+  backdrop-filter: blur(8px);
+  color: #c0cfde;
+}
+.meteor-actions button {
+  position: relative;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.meteor-actions button + button::before {
+  position: absolute;
+  left: 0;
+  top: 35%;
+  bottom: 35%;
+  width: 1px;
+  content: "";
+  background: rgb(159 190 211 / 25%);
+}
+.meteor-actions button:hover { color: #eff8ff; background: rgb(135 180 214 / 10%); }
+.meteor-actions button:focus-visible { outline: 2px solid #d8eaff; outline-offset: 3px; }
+#meteor-status {
+  position: absolute;
+  inset: auto 12px calc(66px + env(safe-area-inset-bottom));
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  text-shadow: 0 1px 4px #06142a;
+}

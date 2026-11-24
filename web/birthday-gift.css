@@ -1,0 +1,29 @@
+.recipient-greeting{display:block;margin-bottom:13px;color:#a86d87;font-size:clamp(11px,1.5vw,18px);letter-spacing:2px;line-height:1.5;overflow-wrap:anywhere}
+.identity-screen {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px;
+  background: radial-gradient(ellipse at 18% 16%, #f7dce9 0, transparent 58%),
+    radial-gradient(ellipse at 82% 89%, #faefdc 0, transparent 62%), #f8eaf0;
+}
+.identity-submit {
+  min-height: 58px; max-width: 100%; padding: 16px clamp(27px, 6vw, 48px);
+  border: 1px solid #fffc; border-radius: 100px;
+  background: linear-gradient(145deg, #a2627e, #8c4e6c); color: #fff9fb;
+  box-shadow: inset 0 1px 0 #ffffff35, 0 8px 24px #81465f24;
+  font: 500 clamp(17px, 3vw, 21px)/1.5 "STKaiti", "KaiTi", "Microsoft YaHei", serif;
+  letter-spacing: .1em; cursor: pointer;
+}
+.identity-submit:hover { background: linear-gradient(145deg, #985574, #804460); }
+.identity-submit:active { transform: translateY(1px); }
+.identity-submit:focus-visible { outline: 2px solid #904f71; outline-offset: 5px; }
+.identity-screen~noscript{z-index:21}.birthday-copy .recipient-greeting:empty{display:none}.personal-long .card-message{font-size:10px;line-height:1.35;padding-left:5px;padding-right:5px}
+.wish-letter-dialog{width:min(690px,calc(100% - 36px));max-height:calc(100% - 40px);padding:0;border:1px solid #f9e8f3bd;border-radius:23px;background:#fbf4f2;color:#79596b;box-shadow:0 25px 150px #0007;overflow-y:auto;scrollbar-width:thin}.wish-letter-dialog::backdrop{background:#080819b8;backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px)}
+.wish-letter{padding:36px 52px 33px;text-align:center;background:radial-gradient(ellipse at 10% 5%,#f1dceba1,transparent 60%),radial-gradient(ellipse at 95% 85%,#f5e6cb7d,transparent 55%),#fff9f5}.letter-star{display:block;font-size:35px;line-height:1;color:#b28f9b;margin-bottom:13px}.letter-kicker{font:7px/1.8 Georgia,serif;letter-spacing:2.8px;color:#b39aa9}.letter-dedication{font-size:10px;letter-spacing:2px;color:#b695a7;margin:20px 0 10px}.wish-letter h2{font:400 clamp(24px,3.6vw,34px)/1.65 "KaiTi","STKaiti",serif;color:#a16483;letter-spacing:2px;margin:0 0 22px;overflow-wrap:anywhere}.wish-letter h2:focus{outline:0}.wish-letter-copy{text-align:left;font-size:12px;line-height:2.2;color:#977787;letter-spacing:.5px}.wish-letter-copy p{margin:0 0 14px;overflow-wrap:anywhere}.letter-closing{font:19px/1.8 "KaiTi",serif;color:#a9768b;letter-spacing:1px;margin:21px 0 8px;overflow-wrap:anywhere}.letter-signature{display:block;color:#b09a90;font-size:9px;letter-spacing:2px}.letter-actions{display:flex;justify-content:center;gap:14px;margin-top:27px;flex-wrap:wrap}.letter-actions button{padding:12px 20px;border:1px solid #d6b8c7;border-radius:100px;background:#b17d98;color:#fff7fc;font-size:11px}.letter-actions button+button{background:transparent;color:#a97c94}
+.lab-title{font-size:13px;letter-spacing:1.2px}.lab-caption{letter-spacing:.4px}#cake-recipient-line{display:block;max-width:min(720px,90vw);margin:0 auto;line-height:1.8;overflow-wrap:anywhere}
+@media(max-width:700px){.recipient-greeting{font-size:11px;margin-bottom:10px;letter-spacing:1px}.personal-long .card-message{font-size:7px;line-height:1.13;padding-left:4px;padding-right:4px}.wish-letter{padding:27px 25px 25px}.wish-letter-copy{font-size:11px;line-height:2.05}.letter-star{font-size:28px}.letter-dedication{font-size:9px;letter-spacing:1px;margin-top:16px}.wish-letter h2{font-size:25px;margin-bottom:18px}.letter-closing{font-size:17px}.letter-actions{gap:9px;margin-top:21px}.letter-actions button{padding:11px 15px;font-size:10px}.lab-title{font-size:11px;letter-spacing:.6px}.lab-symbol{width:29px}.galaxy-edit{gap:7px}.lab-caption{font-size:6px;letter-spacing:0}.lab-toggle{font-size:15px}.galaxy-dedication span{font-size:9px;letter-spacing:1.5px}}
+@media(max-height:700px){.wish-letter-dialog{max-height:calc(100% - 24px)}}
+.galaxy-edit{display:grid;grid-template-columns:43px auto;column-gap:13px;row-gap:7px;align-items:center;flex-shrink:0}
+.galaxy-edit .lab-symbol{grid-row:1/3;height:58px}
+.lab-wordmark{grid-column:2;gap:3px}
+.galaxy-edit .lab-toggle{grid-column:2;justify-self:start;align-self:auto;margin:0;padding:4px 9px;border:1px solid #cba5ff42;border-radius:6px;background:#b895e812;font:10px/1.5 "Microsoft YaHei",sans-serif;letter-spacing:.8px;transition:background .2s}
+.galaxy-edit:hover .lab-toggle{background:#b895e831}
+@media(max-width:700px){.galaxy-edit{grid-template-columns:29px auto;column-gap:7px;row-gap:4px}.galaxy-edit .lab-symbol{height:50px}.galaxy-edit .lab-toggle{font-size:8px;letter-spacing:0;padding:3px 6px}.galaxy-header{align-items:flex-start}.galaxy-header>div{padding-top:3px}.galaxy-header .galaxy-button{padding:9px;font-size:9px}.is-editing .galaxy-status{top:83px}}
