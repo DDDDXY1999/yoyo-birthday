@@ -175,7 +175,10 @@ async function prepare() {
   ]);
   ready = true;
   publish();
-  return { audioUrl, videoUrl, createWorkshop: module.createWorkshop };
+  return {
+    audioUrl, videoUrl, audioFileUrl: localUrl(audio.path), videoFileUrl: localUrl(video.path),
+    createWorkshop: module.createWorkshop
+  };
 }
 
 export function preloadBirthdayAssets(onProgress) {

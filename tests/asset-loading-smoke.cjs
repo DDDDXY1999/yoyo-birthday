@@ -30,6 +30,17 @@ async function waitForDownload(promise, label) {
       const url = new URL('.' + req.url, base);
       const video = url.pathname === mobileFilm;
       if (/\.(mp3|m4a|mp4|ogg|wav)$/i.test(url.pathname)) mediaRequests.push(url.pathname);
+      if (req.headers.range) {
+        // Native media may seek using byte ranges after rejecting a blob URL.
+        const range = await fetch(url, {headers:{Range:req.headers.range}});
+        const bytes = Buffer.from(await range.arrayBuffer());
+        res.writeHead(range.status, {
+          'Content-Type': range.headers.get('content-type'),
+          'Content-Range': range.headers.get('content-range'),
+          'Accept-Ranges':'bytes', 'Content-Length':bytes.length
+        }).end(bytes);
+        return;
+      }
       if (video && ++videoAttempts === 1) {
         firstVideo.resolve();
         await failVideo.promise;
@@ -116,7 +127,30 @@ async function waitForDownload(promise, label) {
     await desktop.goto('http://127.0.0.1:' + server.address().port + '/');
     await desktop.locator('#identity-submit').waitFor({state:'visible'});
     assert.deepEqual(mediaRequests.slice(downloadsAtReady.length).toSorted(), [desktopFilm, piano].toSorted());
-    console.log(JSON.stringify({passed:true,mobile:true,partialDownloadBlocksEntry:true,retry:true,videoAttempts,mediaPlayedFromBlobs:true,offlineWorkshop:true,oneFilmPerDevice:true}));
+
+    // Some media engines reject blob: playback even though the same MP4 plays over HTTPS.
+    const fallback = await browser.newPage({viewport:{width:390,height:844}, isMobile:true, hasTouch:true});
+    await fallback.addInitScript(() => {
+      const makeUrl = URL.createObjectURL.bind(URL);
+      URL.createObjectURL = blob => makeUrl(/^(audio|video)\//.test(blob.type)
+        ? new Blob(['unsupported media source'], {type:blob.type}) : blob);
+      const NativeAudio = window.Audio;
+      window.Audio = class extends NativeAudio {
+        constructor(...args) { super(...args); window.testPiano = this; }
+      };
+    });
+    await fallback.goto('http://127.0.0.1:' + server.address().port + '/');
+    await fallback.locator('#identity-submit').tap();
+    await fallback.waitForFunction(path => window.testPiano?.currentSrc.endsWith(path) && window.testPiano.currentTime > 0, piano);
+    await fallback.locator('#start').tap();
+    await fallback.locator('#enter-cake').tap({timeout:15000});
+    await fallback.waitForFunction(path => {
+      const film = document.getElementById('meteor-film');
+      return film.currentSrc.endsWith(path) && film.currentTime > 0;
+    }, mobileFilm);
+    await fallback.waitForFunction(() => document.getElementById('meteor-film').ended &&
+      !document.getElementById('studio-edit').disabled, null, {timeout:45000});
+    console.log(JSON.stringify({passed:true,mobile:true,partialDownloadBlocksEntry:true,retry:true,mediaPlayedFromBlobs:true,offlineWorkshop:true,oneFilmPerDevice:true,mediaUrlFallback:true}));
   } finally {
     failVideo.resolve(); finishVideo.resolve();
     if (browser) await browser.close();

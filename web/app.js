@@ -1,6 +1,6 @@
 import { getRecipient } from './birthday-profile.js?v=3';
 import { createCardInteraction } from './heart-cards.js?v=3';
-import { preloadBirthdayAssets } from './asset-loader.js?v=2';
+import { preloadBirthdayAssets } from './asset-loader.js?v=3';
 
 const CARD_COUNT = 64;
 const DURATION_MS = 5000;
@@ -91,6 +91,28 @@ let musicWanted = false;
 let musicRequest = 0;
 let musicFade = 0;
 
+// A few media backends can decode these files only through a normal URL.
+// Native source selection retains the original play() and its user gesture.
+function setMediaSources(element, blobUrl, fileUrl, onFailure) {
+  const buffered = document.createElement('source');
+  buffered.src = blobUrl;
+  const fallback = document.createElement('source');
+  fallback.src = fileUrl;
+  fallback.addEventListener('error', onFailure);
+  element.append(buffered, fallback);
+}
+
+function showMusicError() {
+  if (!musicWanted) return;
+  musicRequest++;
+  musicWanted = false;
+  musicEnabled = false;
+  cancelAnimationFrame(musicFade);
+  updateMusicButton();
+  status.textContent = "音乐暂时未能开启，祝福仍会照常送达";
+  document.getElementById('workshop-status').textContent = '音乐暂时未能开启，点击音符可重试';
+}
+
 function updateMusicButton() {
   const available = Boolean(sceneAssets?.audioUrl);
   const button = document.getElementById("music");
@@ -131,12 +153,15 @@ async function setMusic(enabled,immediate=false) {
   }
   updateMusicButton();
   try {
-    if (!backgroundAudio||backgroundAudio.error) {
-      backgroundAudio?.pause();
-      backgroundAudio = new Audio(sceneAssets.audioUrl);
+    if (!backgroundAudio) {
+      backgroundAudio = new Audio();
       backgroundAudio.loop = true;
       backgroundAudio.volume = 0;
       backgroundAudio.preload = "none";
+      setMediaSources(backgroundAudio, sceneAssets.audioUrl, sceneAssets.audioFileUrl, showMusicError);
+      backgroundAudio.addEventListener('error', showMusicError);
+    } else if (backgroundAudio.error || backgroundAudio.networkState === backgroundAudio.NETWORK_NO_SOURCE) {
+      backgroundAudio.load();
     }
     // Call play inside the original click handler, before any await, for mobile browsers.
     await backgroundAudio.play();
@@ -145,12 +170,7 @@ async function setMusic(enabled,immediate=false) {
     fadeMusicTo(musicVolume(),1400,request);
     updateMusicButton();
   } catch {
-    if(request!==musicRequest)return;
-    musicWanted=false;
-    musicEnabled = false;
-    updateMusicButton();
-    status.textContent = "音乐暂时未能开启，祝福仍会照常送达";
-    document.getElementById('workshop-status').textContent='音乐暂时未能开启，点击音符可重试';
+    if (request === musicRequest) showMusicError();
   }
 }
 
@@ -300,7 +320,7 @@ function playMeteor() {
   const request = ++meteorPlayback;
   meteorStatus.textContent = "";
   meteorReplay.textContent = "重播";
-  if (meteorFilm.error) meteorFilm.load();
+  if (meteorFilm.error || meteorFilm.networkState === meteorFilm.NETWORK_NO_SOURCE) meteorFilm.load();
   meteorFilm.currentTime = 0;
   meteorFilm.play().catch(error => {
     if (request !== meteorPlayback || meteorScreen.hidden || error.name === "AbortError") return;
@@ -463,7 +483,7 @@ async function prepareInvitation() {
       loadProgress.value = percent;
       loadPercent.textContent = `${percent}%`;
     });
-    meteorFilm.src = sceneAssets.videoUrl;
+    setMediaSources(meteorFilm, sceneAssets.videoUrl, sceneAssets.videoFileUrl, showMeteorError);
     updateMusicButton();
     loadingScreen.hidden = true;
     identityScreen.hidden = false;
