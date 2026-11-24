@@ -7,7 +7,7 @@ const output=path.resolve(__dirname,'../artifacts');
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.BIRTHDAY_BROWSER_CHANNEL?{channel:process.env.BIRTHDAY_BROWSER_CHANNEL}:{})}),errors=[],remote=[];
  async function prepare(page){
-  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});page.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:'))remote.push(r.url())});
+  page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});page.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'+new URL(BASE_URL).origin+'/'))remote.push(r.url())});
   await page.addInitScript(()=>{const NativeAudio=window.Audio;window.__music=[];window.Audio=function(...args){const a=new NativeAudio(...args);window.__music.push(a);return a;};window.Audio.prototype=NativeAudio.prototype;Object.setPrototypeOf(window.Audio,NativeAudio);});
   await page.goto(BASE_URL);
   assert.equal(await page.evaluate(()=>window.__music.length),0,'No audio before opening the surprise');

@@ -8,7 +8,7 @@ const output=path.resolve(__dirname,'../artifacts'),key='birthday-galaxy-cake-v2
  const browser=await chromium.launch({headless:true,...(process.env.BIRTHDAY_BROWSER_CHANNEL?{channel:process.env.BIRTHDAY_BROWSER_CHANNEL}:{})}),errors=[],remote=[];
  const idle=p=>p.waitForFunction(()=>document.getElementById('cake-screen').dataset.motion==='idle'&&!document.getElementById('studio-random').disabled,{},{timeout:20000});
  async function enter(p){
-  p.on('pageerror',e=>errors.push(String(e)));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});p.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:'))remote.push(r.url())});
+  p.on('pageerror',e=>errors.push(String(e)));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});p.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'+new URL(BASE_URL).origin+'/'))remote.push(r.url())});
   await p.goto(BASE_URL);await unlockBirthday(p);await p.locator('#start').click();await p.locator('#enter-cake').click({timeout:12000});await finishMeteor(p);await p.waitForFunction(()=>!document.getElementById('studio-edit').disabled);
  }
  try{

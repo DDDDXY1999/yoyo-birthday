@@ -1,9 +1,4 @@
 .recipient-greeting{display:block;margin-bottom:13px;color:#a86d87;font-size:clamp(11px,1.5vw,18px);letter-spacing:2px;line-height:1.5;overflow-wrap:anywhere}
-.identity-screen {
-  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px;
-  background: radial-gradient(ellipse at 18% 16%, #f7dce9 0, transparent 58%),
-    radial-gradient(ellipse at 82% 89%, #faefdc 0, transparent 62%), #f8eaf0;
-}
 .identity-submit {
   min-height: 58px; max-width: 100%; padding: 16px clamp(27px, 6vw, 48px);
   border: 1px solid #fffc; border-radius: 100px;

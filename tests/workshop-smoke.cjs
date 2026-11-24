@@ -12,7 +12,7 @@ const key='birthday-galaxy-cake-v2';
  const closed=page=>page.waitForFunction(()=>Number(document.getElementById('cake-screen').dataset.expansion)<.01);
  async function enter(page){
   page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
-  page.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:'))remote.push(r.url())});
+  page.on('request',r=>{if(!r.url().startsWith(BASE_URL)&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'+new URL(BASE_URL).origin+'/'))remote.push(r.url())});
   await page.goto(BASE_URL);await unlockBirthday(page);await page.locator('#start').click();await page.locator('#enter-cake').click({timeout:12000});await finishMeteor(page);
   await page.waitForFunction(()=>!document.getElementById('studio-edit').disabled);await page.waitForTimeout(500);
  }

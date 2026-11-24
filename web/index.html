@@ -4,16 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7e7ed">
-  <style>[hidden] { display: none !important; }</style>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    [hidden] { display: none !important; }
+    .awaiting-identity > .page-header[inert], .awaiting-identity > .experience[inert] { visibility: hidden; }
+    .identity-screen, .asset-loading-screen {
+      box-sizing: border-box; position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px;
+      background: radial-gradient(ellipse at 18% 16%, #f7dce9 0, transparent 58%),
+        radial-gradient(ellipse at 82% 89%, #faefdc 0, transparent 62%), #f8eaf0;
+    }
+    .asset-loading-content {
+      width: min(100%, 21rem);
+      color: #734761;
+    }
+    .asset-loading-caption {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 1.25rem;
+      padding-bottom: 14px;
+    }
+    #asset-loading-status {
+      margin: 0;
+      font: 500 clamp(16px, 3vw, 19px)/1.6 "STKaiti", "KaiTi", "Microsoft YaHei", serif;
+      letter-spacing: .07em;
+    }
+    #asset-loading-percent {
+      flex: none; color: #80566d;
+      font: 400 14px/1.4 "Segoe UI", sans-serif; font-variant-numeric: tabular-nums;
+    }
+    #asset-loading-progress {
+      display: block; width: 100%; height: 5px; overflow: hidden;
+      appearance: none; -webkit-appearance: none; border: 0; border-radius: 1rem;
+      background: #dfc7d1; color: #935773;
+    }
+    #asset-loading-progress::-webkit-progress-bar { background: #dfc7d1; border-radius: inherit; }
+    #asset-loading-progress::-webkit-progress-value {
+      background: linear-gradient(90deg, #bf859a, #935773); border-radius: inherit;
+      transition: width .12s linear;
+    }
+    #asset-loading-progress::-moz-progress-bar {
+      background: linear-gradient(90deg, #bf859a, #935773); border-radius: inherit;
+    }
+    #asset-loading-retry {
+      display: block; margin: 23px auto 0; padding: 8px 23px; min-height: 44px;
+      color: #71465d; background: #fff7f8; border: 1px solid #c8a9ba; border-radius: 30px;
+      font: 500 14px/1.5 "Microsoft YaHei", sans-serif; cursor: pointer;
+    }
+    #asset-loading-retry:hover { background: #fff; }
+    #asset-loading-retry:focus-visible { outline: 2px solid #904f71; outline-offset: 4px; }
+    @media (prefers-reduced-motion: reduce) {
+      #asset-loading-progress::-webkit-progress-value { transition: none; }
+    }
+    @media (forced-colors: active) {
+      #asset-loading-progress { appearance: auto; border: 1px solid; }
+    }
+  </style>
+  <noscript><style>
+    .asset-loading-screen { display: none; }
+    body > noscript { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: #f8eaf0; color: #734761; }
+  </style></noscript>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'/%3E" data-icon="favicon.svg" type="image/svg+xml">
   <title>一份小小的祝福 · 生日快乐</title>
-  <link rel="stylesheet" href="style.css?v=12">
-  <link rel="stylesheet" href="galaxy.css?v=5">
-  <link rel="stylesheet" href="meteor-scene.css?v=2">
-  <link rel="stylesheet" href="birthday-gift.css?v=3">
-  <script type="module" src="app.js?v=21"></script>
+  <link rel="stylesheet" href="style.css?v=12" media="print" onload="this.media='all';this.dataset.loadState='loaded'" onerror="this.dataset.loadState='error'">
+  <link rel="stylesheet" href="galaxy.css?v=5" media="print" onload="this.media='all';this.dataset.loadState='loaded'" onerror="this.dataset.loadState='error'">
+  <link rel="stylesheet" href="meteor-scene.css?v=2" media="print" onload="this.media='all';this.dataset.loadState='loaded'" onerror="this.dataset.loadState='error'">
+  <link rel="stylesheet" href="birthday-gift.css?v=4" media="print" onload="this.media='all';this.dataset.loadState='loaded'" onerror="this.dataset.loadState='error'">
+  <script type="module">
+    import('./app.js?v=22').catch(() => {
+      document.getElementById('asset-loading-status').textContent = '网页暂时未能加载，请再试一次';
+      const retry = document.getElementById('asset-loading-retry');
+      retry.hidden = false;
+      retry.onclick = () => location.reload();
+    });
+  </script>
 </head>
 <body class="awaiting-start awaiting-identity">
+  <section id="asset-loading-screen" class="asset-loading-screen" role="dialog" aria-modal="true" aria-label="加载生日惊喜" tabindex="-1">
+    <div class="asset-loading-content">
+      <div class="asset-loading-caption">
+        <p id="asset-loading-status" role="status" aria-live="polite" aria-atomic="true">正在加载生日惊喜</p>
+        <span id="asset-loading-percent" aria-hidden="true">0%</span>
+      </div>
+      <progress id="asset-loading-progress" aria-label="素材加载进度" max="100" value="0"></progress>
+      <button id="asset-loading-retry" type="button" hidden>重新加载</button>
+    </div>
+  </section>
+
   <div class="ambient" aria-hidden="true"></div>
   <header class="page-header" inert>
     <a class="brand" href="./" aria-label="重新打开生日祝福"><span class="brand-heart">♡</span><span>一份小小的祝福<small>A LITTLE WISH FOR YOU</small></span></a>
@@ -29,7 +102,7 @@
   </main>
 
   <section id="meteor-screen" class="meteor-scene" aria-label="射手座流星雨" tabindex="-1" hidden>
-    <video id="meteor-film" src="meteor-shower.mp4" muted playsinline preload="none" aria-label="流星掠过夜空，星光聚成射手座少女"></video>
+    <video id="meteor-film" muted playsinline preload="metadata" aria-label="流星掠过夜空，星光聚成射手座少女"></video>
     <div class="meteor-actions" role="group" aria-label="流星雨播放选项">
       <button id="meteor-back" type="button">← 返回爱心</button>
       <button id="meteor-replay" type="button">重播</button>
@@ -112,14 +185,14 @@
         <span class="cake-pearls" aria-hidden="true"></span>
         <span class="cake-decoration" aria-hidden="true">♡ &nbsp; ✧ &nbsp; ♡</span>
         <span class="cake-candle" aria-hidden="true"><span class="cake-flame"></span></span>
-        <span class="cake-copy"><span id="intro-title" class="intro-title">点击开启音乐</span><span id="intro-description" class="intro-description">让祝福，陪你许下新的心愿</span></span>
+        <span class="cake-copy"><span id="intro-title" class="intro-title">点亮生日蛋糕</span><span id="intro-description" class="intro-description">让祝福，陪你许下新的心愿</span></span>
       </button>
       <button id="start-quiet" class="intro-quiet" type="button">先安静地看看 <span aria-hidden="true">→</span></button>
     </div>
     <p class="intro-footer">今天的美好，都是为你准备的</p>
   </section>
 
-  <section id="identity-screen" class="identity-screen" role="dialog" aria-modal="true" aria-labelledby="identity-submit">
+  <section id="identity-screen" class="identity-screen" role="dialog" aria-modal="true" aria-labelledby="identity-submit" hidden inert>
     <button id="identity-submit" class="identity-submit" type="button">打开属于你的惊喜</button>
   </section>
 

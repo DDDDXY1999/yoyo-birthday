@@ -1,5 +1,6 @@
 import { getRecipient } from './birthday-profile.js?v=3';
 import { createCardInteraction } from './heart-cards.js?v=3';
+import { preloadBirthdayAssets } from './asset-loader.js?v=1';
 
 const CARD_COUNT = 64;
 const DURATION_MS = 5000;
@@ -66,6 +67,8 @@ const meteorStatus = document.getElementById("meteor-status");
 let meteorPlayback = 0;
 let meteorRecoveryTimer = 0;
 const identityScreen = document.getElementById('identity-screen');
+const loadingScreen = document.getElementById('asset-loading-screen');
+let sceneAssets;
 let recipient = null;
 let cake = null;
 let cakeNavigation = 0;
@@ -81,7 +84,7 @@ let active = false;
 let heartbeatTimer = 0;
 let cardInteraction=null;
 
-const BACKGROUND_MUSIC = { src: "audio/birthday-piano.mp3", title: "生日快乐 · 钢琴独奏" };
+const MUSIC_TITLE = "生日快乐 · 钢琴独奏";
 let backgroundAudio = null;
 let musicEnabled = false;
 let musicWanted = false;
@@ -89,13 +92,13 @@ let musicRequest = 0;
 let musicFade = 0;
 
 function updateMusicButton() {
-  const available = Boolean(BACKGROUND_MUSIC.src);
+  const available = Boolean(sceneAssets?.audioUrl);
   const button = document.getElementById("music");
   button.hidden = !available;
   document.getElementById("music-divider").hidden = !available;
   button.setAttribute("aria-pressed", String(musicWanted));
   button.setAttribute('aria-busy',String(musicWanted&&!musicEnabled));
-  button.title = musicWanted ? `关闭音乐 · ${BACKGROUND_MUSIC.title}` : `播放 ${BACKGROUND_MUSIC.title}`;
+  button.title = musicWanted ? `关闭音乐 · ${MUSIC_TITLE}` : `播放 ${MUSIC_TITLE}`;
   document.getElementById("music-label").textContent = musicWanted ? "静音" : "音乐";
   const cakeMusic=document.getElementById('cake-music');cakeMusic.hidden=!available;
   cakeMusic.setAttribute('aria-pressed',String(musicWanted));cakeMusic.setAttribute('aria-busy',String(musicWanted&&!musicEnabled));
@@ -116,7 +119,7 @@ function fadeMusicTo(target,duration,request=musicRequest){
 }
 async function setMusic(enabled,immediate=false) {
   const request = ++musicRequest;
-  musicWanted=Boolean(enabled&&BACKGROUND_MUSIC.src);cancelAnimationFrame(musicFade);
+  musicWanted=Boolean(enabled&&sceneAssets?.audioUrl);cancelAnimationFrame(musicFade);
   if (!musicWanted) {
     musicEnabled = false;
     if (backgroundAudio){
@@ -130,7 +133,7 @@ async function setMusic(enabled,immediate=false) {
   try {
     if (!backgroundAudio||backgroundAudio.error) {
       backgroundAudio?.pause();
-      backgroundAudio = new Audio(BACKGROUND_MUSIC.src);
+      backgroundAudio = new Audio(sceneAssets.audioUrl);
       backgroundAudio.loop = true;
       backgroundAudio.volume = 0;
       backgroundAudio.preload = "none";
@@ -347,9 +350,7 @@ async function enterCake() {
   try {
     if (!cake) {
       document.getElementById("workshop-status").textContent = "正在把星光，变成你的蛋糕…";
-      const { createWorkshop: createCake } = await import("./workshop.js?v=10");
-      if (navigation !== cakeNavigation) return;
-      const created = await createCake(document.getElementById("workshop-canvas"));
+      const created = await sceneAssets.createWorkshop(document.getElementById("workshop-canvas"));
       if (navigation !== cakeNavigation) { created.dispose(); return; }
       cake = created;
     }
@@ -389,7 +390,7 @@ function startExperience(withMusic) {
 
 document.getElementById("start").addEventListener("click", () => startExperience(true));
 document.getElementById('identity-submit').addEventListener('click', () => {
-  if (identityScreen.hidden) return;
+  if (identityScreen.hidden || !sceneAssets) return;
   setMusic(true);
   recipient = getRecipient();
   cardInteraction ??= createCardInteraction({cards,stage:cards,getNodes:()=>nodes,getPositions:()=>positions,getCardSize:cardSize,position:positionCard,onStatus:text=>status.textContent=text});
@@ -432,6 +433,7 @@ document.addEventListener("fullscreenchange", () => {
   document.getElementById("fullscreen-label").textContent = document.fullscreenElement ? "还原" : "全屏";
 });
 document.addEventListener("keydown", event => {
+  if (!loadingScreen.hidden) return;
   if (document.querySelector('dialog[open]')) return;
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target.matches("input, textarea, select")) return;
@@ -446,11 +448,34 @@ document.addEventListener("keydown", event => {
   }
 });
 new ResizeObserver(layout).observe(cards);
-updateMusicButton();
-if (!BACKGROUND_MUSIC.src) {
-  document.getElementById("intro-title").textContent = "点击开启祝福";
-  document.getElementById("start-quiet").hidden = true;
-}
-else document.getElementById('intro-title').textContent='点亮生日蛋糕';
+const loadProgress = document.getElementById('asset-loading-progress');
+const loadPercent = document.getElementById('asset-loading-percent');
+const loadStatus = document.getElementById('asset-loading-status');
+const retryLoading = document.getElementById('asset-loading-retry');
 
-document.getElementById('identity-submit').focus({preventScroll:true});
+async function prepareInvitation() {
+  retryLoading.disabled = true;
+  retryLoading.hidden = true;
+  loadStatus.textContent = '正在加载生日惊喜';
+  try {
+    sceneAssets = await preloadBirthdayAssets(({percent}) => {
+      if (loadProgress.value === percent) return;
+      loadProgress.value = percent;
+      loadPercent.textContent = `${percent}%`;
+    });
+    meteorFilm.src = sceneAssets.videoUrl;
+    updateMusicButton();
+    loadingScreen.hidden = true;
+    identityScreen.hidden = false;
+    identityScreen.inert = false;
+    document.getElementById('identity-submit').focus({preventScroll:true});
+  } catch {
+    loadStatus.textContent = '素材加载中断，请再试一次';
+    retryLoading.disabled = false;
+    retryLoading.hidden = false;
+    retryLoading.focus({preventScroll:true});
+  }
+}
+
+retryLoading.addEventListener('click', prepareInvitation);
+prepareInvitation();

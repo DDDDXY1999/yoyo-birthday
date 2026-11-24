@@ -14,7 +14,11 @@ async function until(page,fn){for(let i=0;i<250;i++){if(await page.evaluate(fn))
  await fs.access(original);const browser=await chromium.launch({headless:true,...(process.env.BIRTHDAY_BROWSER_CHANNEL?{channel:process.env.BIRTHDAY_BROWSER_CHANNEL}:{})}),errors=[];let encoder=null,log='';
  try{
   const page=await browser.newPage(desktop?{viewport:{width:1920,height:1080},deviceScaleFactor:1}:{viewport:{width:540,height:960},deviceScaleFactor:2,isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(String(e)));
-  const today=new Date();await page.clock.install({time:new Date(+today-5000)});await page.goto(BASE_URL);await page.clock.pauseAt(today);
+  await page.goto(BASE_URL);
+  await page.locator('#identity-submit').waitFor({state:'visible'});
+  const today=new Date();
+  await page.clock.install({time:new Date(+today-5000)});
+  await page.clock.pauseAt(today);
   await page.addStyleTag({content:':focus-visible{outline:none!important}'});
   await page.evaluate(()=>document.fonts.ready);
   const actions=new Map(),at=(time,fn)=>actions.set(Math.round(time*fps),fn);

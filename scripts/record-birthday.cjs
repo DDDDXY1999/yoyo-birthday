@@ -23,8 +23,11 @@ async function runFFmpeg(args){const p=spawn(ffmpeg,['-hide_banner','-loglevel',
   // Raise only this capture's canvas resolution to match the 1080p output.
   await page.route('**/workshop.js?v=10',async route=>{const response=await route.fetch();const body=(await response.text()).replace('Math.min(devicePixelRatio || 1, 1.6)','Math.min(devicePixelRatio || 1, 2)');await route.fulfill({response,body});});
   await page.addInitScript(()=>{let seed=81173;Math.random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};});
-  const recordDate=new Date();await page.clock.install({time:new Date(+recordDate-5000)});
-  await page.goto(BASE_URL);await page.clock.pauseAt(recordDate);
+  await page.goto(BASE_URL);
+  await page.locator('#identity-submit').waitFor({state:'visible'});
+  const recordDate=new Date();
+  await page.clock.install({time:new Date(+recordDate-5000)});
+  await page.clock.pauseAt(recordDate);
   await page.addStyleTag({content:':focus-visible{outline:none!important}'});
   const invitationButton=await page.locator('#identity-submit').boundingBox();
   await page.mouse.click(invitationButton.x+invitationButton.width/2,invitationButton.y+invitationButton.height/2);

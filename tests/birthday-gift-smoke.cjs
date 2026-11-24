@@ -10,7 +10,7 @@ const unlock=require('./enter-birthday.cjs'),output=path.resolve(__dirname,'../a
  const wish=async p=>{await p.locator('#studio-confirm').click();await p.keyboard.down('Space');await p.waitForFunction(()=>document.getElementById('studio-wish-progress').value>=100,{},{timeout:45000});await p.keyboard.up('Space');await p.locator('#wish-letter-dialog').waitFor({state:'visible',timeout:30000})};
  try{
   await fs.mkdir(output,{recursive:true});const context=await browser.newContext({viewport:{width:1440,height:960}});const page=await context.newPage();watch(page);await page.goto(BASE_URL+'#birthday=2000.02.01');
-  assert.equal(await page.locator('#identity-screen').isVisible(),true);assert.equal(await page.locator('#start').isVisible(),false);await page.keyboard.press('r');assert.equal(await page.locator('.wish-card').count(),0);assert.equal(await page.locator('#identity-screen :is(input,select,textarea)').count(),0);
+  await page.locator('#identity-submit').waitFor({state:'visible'});assert.equal(await page.locator('#start').isVisible(),false);await page.keyboard.press('r');assert.equal(await page.locator('.wish-card').count(),0);assert.equal(await page.locator('#identity-screen :is(input,select,textarea)').count(),0);
   assert.equal(await page.locator('#identity-screen button').count(),1);
   assert.equal((await page.locator('#identity-screen').innerText()).trim(),'打开属于你的惊喜');
   await page.screenshot({path:path.join(output,'birthday-entry.png')});
@@ -26,11 +26,11 @@ const unlock=require('./enter-birthday.cjs'),output=path.resolve(__dirname,'../a
   const values=await page.evaluate(()=>Object.values(localStorage));assert.ok(values.every(v=>!v.includes('2000.02.01')));
   const storageState=await context.storageState();
   await context.close();
-  const mobile=await browser.newContext({viewport:{width:360,height:760},isMobile:true,hasTouch:true,storageState});const phone=await mobile.newPage();watch(phone);await phone.goto(BASE_URL);await phone.screenshot({path:path.join(output,'birthday-entry-mobile.png')});
+  const mobile=await browser.newContext({viewport:{width:360,height:760},isMobile:true,hasTouch:true,storageState});const phone=await mobile.newPage();watch(phone);await phone.goto(BASE_URL);await phone.locator('#identity-submit').waitFor({state:'visible'});await phone.screenshot({path:path.join(output,'birthday-entry-mobile.png')});
   await unlock(phone);await cake(phone);assert.equal(await phone.locator('#studio-age').inputValue(),String(age));assert.ok((await phone.locator('#studio-message').inputValue()).includes('悠悠'));assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const header=await phone.evaluate(()=>({entry:document.getElementById('studio-edit').getBoundingClientRect().right,back:document.getElementById('back-heart').getBoundingClientRect().left}));assert.ok(header.entry<header.back);
   await wish(phone);assert.ok((await phone.locator('#wish-letter-title').textContent()).includes(`悠悠，${age}岁`));await phone.screenshot({path:path.join(output,'birthday-letter-mobile.png')});await phone.keyboard.press('Escape');assert.equal(await phone.locator('#cake-screen').isVisible(),true);
-  await phone.reload();assert.equal(await phone.locator('#identity-screen').isVisible(),true);assert.equal(await phone.locator('#identity-screen input').count(),0);
-  assert.ok(requests.every(url=>url.startsWith(BASE_URL)||url.startsWith('data:')));assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,singleButtonEntry:true,personalizedCards:true,numericAge:true,finalLetter:true,rawBirthdayStored:false,mobileHeader:header,errors:0}));
+  await phone.reload();await phone.locator('#identity-submit').waitFor({state:'visible'});assert.equal(await phone.locator('#identity-screen input').count(),0);
+  assert.ok(requests.every(url=>url.startsWith(BASE_URL)||url.startsWith('data:')||url.startsWith('blob:'+new URL(BASE_URL).origin+'/')));assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,singleButtonEntry:true,personalizedCards:true,numericAge:true,finalLetter:true,rawBirthdayStored:false,mobileHeader:header,errors:0}));
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
